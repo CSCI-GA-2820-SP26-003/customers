@@ -30,6 +30,7 @@ from tests.factories import CustomerFactory
 DATABASE_URI = os.getenv(
     "DATABASE_URI", "postgresql+psycopg://postgres:postgres@localhost:5432/testdb"
 )
+BASE_URL = "/customers"
 
 
 ######################################################################
@@ -137,5 +138,26 @@ class TestYourResourceService(TestCase):
             "/customers", json=test_customer.serialize(), content_type="text/plain"
         )
         self.assertEqual(response.status_code, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
+
+    def test_get_customer(self):
+        """It should retrieve a customers details"""
+        # test_customer = self._create_customer(1)[0]
+        test_customer = CustomerFactory()
+        test_customer.create()
+        # response = self.client.post(BASE_URL, json=self.test_get_customer.serialize())
+        # self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        response = self.client.get(f"{BASE_URL}/{test_customer.id}")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        self.assertEqual(data["name"], test_customer.name)
+
+    def test_get_customer_not_found(self):
+        """It should not Get a Customer thats not found"""
+        response = self.client.get(f"{BASE_URL}/0")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        data = response.get_json()
+        logging.debug("Response data = %s", data)
+        self.assertIn("was not found", data["message"])
 
     # Todo: Add your test cases here...
