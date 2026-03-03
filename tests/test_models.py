@@ -110,4 +110,76 @@ class TestCustomer(TestCase):
         for customer in found:
             self.assertEqual(customer.name, name)
 
-    # Todo: Add your test cases here...
+    def test_update_a_customer(self):
+        """It should Update a Customer"""
+        customer = CustomerFactory()
+        customer.create()
+        self.assertIsNotNone(customer.id)
+        customer.name = "John"
+        original_id = customer.id
+        customer.update()
+        self.assertEqual(customer.id, original_id)
+        self.assertEqual(customer.name, "John")
+        found = Customer.find(customer.id)
+        self.assertEqual(found.id, original_id)
+        self.assertEqual(found.name, "John")
+
+    def test_serialize_a_customer(self):
+        """It should Serialize a Customer"""
+        customer = CustomerFactory()
+        data = customer.serialize()
+        self.assertIsNotNone(data)
+        self.assertIn("id", data)
+        self.assertIn("name", data)
+        self.assertIn("address", data)
+        self.assertEqual(data["id"], customer.id)
+        self.assertEqual(data["name"], customer.name)
+        self.assertEqual(data["address"], customer.address)
+
+    def test_deserialize_a_customer(self):
+        """It should Deserialize a Customer"""
+        data = {
+            "name": "Alice",
+            "address": "742 Street",
+        }
+        customer = Customer()
+        customer.deserialize(data)
+        self.assertEqual(customer.name, "Alice")
+        self.assertEqual(customer.address, "742 Street")
+
+    def test_deserialize_missing_name(self):
+        """It should not Deserialize a Customer with missing name"""
+        data = {"address": "50 Broadway, New York, NY 10004"}
+        customer = Customer()
+        self.assertRaises(DataValidationError, customer.deserialize, data)
+
+    def test_deserialize_missing_address(self):
+        """It should not Deserialize a Customer with missing address"""
+        data = {"name": "Bob"}
+        customer = Customer()
+        self.assertRaises(DataValidationError, customer.deserialize, data)
+
+    def test_deserialize_bad_data(self):
+        """It should not Deserialize a Customer with bad data"""
+        customer = Customer()
+        self.assertRaises(DataValidationError, customer.deserialize, "bad data")
+
+    def test_deserialize_none_data(self):
+        """It should not Deserialize a Customer with None data"""
+        customer = Customer()
+        self.assertRaises(DataValidationError, customer.deserialize, None)
+
+    def test_find_customer(self):
+        """It should Find a Customer by ID"""
+        customer = CustomerFactory()
+        customer.create()
+        found = Customer.find(customer.id)
+        self.assertIsNotNone(found)
+        self.assertEqual(found.id, customer.id)
+        self.assertEqual(found.name, customer.name)
+        self.assertEqual(found.address, customer.address)
+
+    def test_find_customer_not_found(self):
+        """It should return None when a Customer is not found"""
+        found = Customer.find(0)
+        self.assertIsNone(found)
