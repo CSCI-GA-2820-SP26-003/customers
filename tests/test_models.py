@@ -67,7 +67,6 @@ class TestCustomer(TestCase):
 
     def test_create_customer(self):
         """It should create a Customer"""
-        # Todo: Remove this test case example
         customer = CustomerFactory()
         customer.create()
         self.assertIsNotNone(customer.id)
