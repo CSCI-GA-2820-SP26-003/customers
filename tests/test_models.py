@@ -77,4 +77,37 @@ class TestCustomer(TestCase):
         self.assertEqual(data.name, customer.name)
         self.assertEqual(data.address, customer.address)
 
+    def test_delete_a_customer(self):
+        """It should Delete a Customer"""
+        customer = CustomerFactory()
+        customer.create()
+        self.assertEqual(len(Customer.all()), 1)
+        # delete the customer and make sure it isn't in the database
+        customer.delete()
+        self.assertEqual(len(Customer.all()), 0)
+
+    def test_list_all_customers(self):
+        """It should List all customers in the database"""
+        customers = Customer.all()
+        self.assertEqual(customers, [])
+        # Create 5 customers
+        for _ in range(5):
+            customer = CustomerFactory()
+            customer.create()
+        # See if we get back 5 customers
+        customers = Customer.all()
+        self.assertEqual(len(customers), 5)
+
+    def test_find_by_name(self):
+        """It should Find a Customer by Name"""
+        customers = CustomerFactory.create_batch(10)
+        for customer in customers:
+            customer.create()
+        name = customers[0].name
+        count = len([customer for customer in customers if customer.name == name])
+        found = Customer.find_by_name(name)
+        self.assertEqual(found.count(), count)
+        for customer in found:
+            self.assertEqual(customer.name, name)
+
     # Todo: Add your test cases here...
