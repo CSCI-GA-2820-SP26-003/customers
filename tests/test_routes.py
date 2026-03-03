@@ -160,4 +160,16 @@ class TestYourResourceService(TestCase):
         logging.debug("Response data = %s", data)
         self.assertIn("was not found", data["message"])
 
+    def test_get_customer_list(self):
+        """It should Get a list of customers"""
+        # self._create_customer(5)
+        customers = CustomerFactory.create_batch(5)
+        for customer in customers:
+            customer.create()
+        response = self.client.get(BASE_URL)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        self.assertEqual(len(data), 5)
+
     # Todo: Add your test cases here...
