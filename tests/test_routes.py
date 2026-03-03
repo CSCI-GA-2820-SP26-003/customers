@@ -171,5 +171,3 @@ class TestYourResourceService(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.get_json()
         self.assertEqual(len(data), 5)
-
-    # Todo: Add your test cases here...
