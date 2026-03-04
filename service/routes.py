@@ -92,6 +92,29 @@ def get_customer(customer_id):
 
     app.logger.info("Returning Customer: %s", customer.name)
     return jsonify(customer.serialize()), status.HTTP_200_OK
+    
+    
+######################################################################
+# UPDATE AN EXISTING CUSTOMER
+######################################################################
+@app.route("/customers/<int:customer_id>", methods=["PUT"])
+def update_customers(customer_id):
+    """
+    Update a Customer
+
+    This endpoint will update a Customer based the body that is posted
+    """
+    app.logger.info("Request to update customer with id: %s", customer_id)
+
+    customer = Customer.find(customer_id)
+    if not customer:
+        abort(status.HTTP_404_NOT_FOUND, f"Customer with id '{customer_id}' was not found.")
+
+    customer.deserialize(request.get_json())
+    customer.id = customer_id
+    customer.update()
+
+    return jsonify(customer.serialize()), status.HTTP_200_OK
 
 
 ######################################################################
