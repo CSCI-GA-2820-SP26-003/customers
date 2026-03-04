@@ -92,8 +92,8 @@ def get_customer(customer_id):
 
     app.logger.info("Returning Customer: %s", customer.name)
     return jsonify(customer.serialize()), status.HTTP_200_OK
-    
-    
+
+
 ######################################################################
 # UPDATE AN EXISTING CUSTOMER
 ######################################################################
@@ -108,7 +108,10 @@ def update_customers(customer_id):
 
     customer = Customer.find(customer_id)
     if not customer:
-        abort(status.HTTP_404_NOT_FOUND, f"Customer with id '{customer_id}' was not found.")
+        abort(
+            status.HTTP_404_NOT_FOUND,
+            f"Customer with id '{customer_id}' was not found.",
+        )
 
     customer.deserialize(request.get_json())
     customer.id = customer_id
@@ -155,3 +158,22 @@ def check_content_type(content_type):
             status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
             f"Content-Type must be {content_type}",
         )
+
+
+######################################################################
+# DELETE A CUSTOMER
+######################################################################
+@app.route("/customers/<int:customer_id>", methods=["DELETE"])
+def delete_customers(customer_id):
+    """
+    Delete a Customer
+
+    This endpoint will delete a Customer based the id specified in the path
+    """
+    app.logger.info("Request to delete customer with id: %s", customer_id)
+
+    customer = Customer.find(customer_id)
+    if customer:
+        customer.delete()
+
+    return "", status.HTTP_204_NO_CONTENT
