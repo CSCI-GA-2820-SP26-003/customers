@@ -182,3 +182,52 @@ class TestCustomer(TestCase):
         """It should return None when a Customer is not found"""
         found = Customer.find(0)
         self.assertIsNone(found)
+
+    def test_customer_repr(self):
+        """It should return a string representation of a Customer"""
+        customer = CustomerFactory()
+        customer.create()
+        self.assertIn(customer.name, repr(customer))
+        self.assertIn(str(customer.id), repr(customer))
+
+    def test_create_raises_db_error(self):
+        """It should raise DataValidationError when the DB raises on create"""
+        from unittest.mock import patch
+
+        customer = CustomerFactory()
+        with patch(
+            "service.models.db.session.commit", side_effect=Exception("DB error")
+        ):
+            self.assertRaises(DataValidationError, customer.create)
+
+    def test_update_raises_db_error(self):
+        """It should raise DataValidationError when the DB raises on update"""
+        from unittest.mock import patch
+
+        customer = CustomerFactory()
+        customer.create()
+        with patch(
+            "service.models.db.session.commit", side_effect=Exception("DB error")
+        ):
+            self.assertRaises(DataValidationError, customer.update)
+
+    def test_delete_raises_db_error(self):
+        """It should raise DataValidationError when the DB raises on delete"""
+        from unittest.mock import patch
+
+        customer = CustomerFactory()
+        customer.create()
+        with patch(
+            "service.models.db.session.commit", side_effect=Exception("DB error")
+        ):
+            self.assertRaises(DataValidationError, customer.delete)
+
+    def test_deserialize_attribute_error(self):
+        """It should raise DataValidationError when data raises AttributeError on access"""
+
+        class BadData:
+            def __getitem__(self, key):
+                raise AttributeError("bad attribute")
+
+        customer = Customer()
+        self.assertRaises(DataValidationError, customer.deserialize, BadData())

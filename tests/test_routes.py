@@ -198,3 +198,26 @@ class TestYourResourceService(TestCase):
         response = self.client.delete(f"{BASE_URL}/{test_customer.id}")
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(len(Customer.all()), 0)
+
+    def test_delete_customer_not_found(self):
+        """It should return 204 even when deleting a Customer that does not exist"""
+        response = self.client.delete(f"{BASE_URL}/0")
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+    def test_update_customer_not_found(self):
+        """It should return 404 when updating a Customer that does not exist"""
+        updated_data = {"name": "Ghost", "address": "Nowhere"}
+        response = self.client.put(
+            f"{BASE_URL}/0",
+            json=updated_data,
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        data = response.get_json()
+        self.assertIn("was not found", data["message"])
+
+    def test_method_not_allowed(self):
+        """It should return 405 for a method that is not allowed"""
+        # PATCH is not defined on /customers
+        response = self.client.patch(BASE_URL, json={})
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
