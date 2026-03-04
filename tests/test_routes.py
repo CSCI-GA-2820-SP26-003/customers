@@ -171,3 +171,20 @@ class TestYourResourceService(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.get_json()
         self.assertEqual(len(data), 5)
+        
+    def test_update_customer(self):
+        """It should Update a Customer"""
+        test_customer = CustomerFactory()
+        test_customer.create()
+        self.assertEqual(len(Customer.all()), 1)
+
+        updated_data = {"name": "Updated Name", "address": "Updated Address"}
+        response = self.client.put(
+            f"{BASE_URL}/{test_customer.id}",
+            json=updated_data,
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        self.assertEqual(data["name"], updated_data["name"])
+        self.assertEqual(data["address"], updated_data["address"])
