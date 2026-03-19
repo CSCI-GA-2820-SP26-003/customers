@@ -128,10 +128,13 @@ def list_pets():
     """Returns all of the Customers"""
     app.logger.info("Request for the customer list")
 
-    customers = Customer.all()
-
-    app.logger.info("Find all")
-    # pets = Pet.all()
+    name = request.args.get("name")
+    if name:
+        app.logger.info("Find by name: %s", name)
+        customers = Customer.find_by_name(name)
+    else:
+        app.logger.info("Find all")
+        customers = Customer.all()
 
     results = [customer.serialize() for customer in customers]
     app.logger.info("Returning %d customers", len(results))
