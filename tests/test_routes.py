@@ -221,3 +221,43 @@ class TestYourResourceService(TestCase):
         # PATCH is not defined on /customers
         response = self.client.patch(BASE_URL, json={})
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_query_customers_by_name(self):
+        """It should return only customers matching the queried name"""
+        customers = CustomerFactory.create_batch(5)
+        for customer in customers:
+            customer.create()
+        target_name = customers[0].name
+        customers[1].name = target_name
+        customers[1].update()
+
+        response = self.client.get(BASE_URL, query_string={"name": target_name})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        self.assertEqual(len(data), 2)
+        for customer in data:
+            self.assertEqual(customer["name"], target_name)
+
+    def test_query_customers_by_name_no_match(self):
+        """It should return an empty list when no customers match the queried name"""
+        customers = CustomerFactory.create_batch(3)
+        for customer in customers:
+            customer.create()
+
+        response = self.client.get(
+            BASE_URL, query_string={"name": "NonExistentName12345"}
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        self.assertEqual(data, [])
+
+    def test_list_customers_without_query(self):
+        """It should return all customers when no query string is provided"""
+        customers = CustomerFactory.create_batch(4)
+        for customer in customers:
+            customer.create()
+
+        response = self.client.get(BASE_URL)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        self.assertEqual(len(data), 4)
