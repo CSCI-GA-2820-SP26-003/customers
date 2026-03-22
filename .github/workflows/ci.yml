@@ -41,8 +41,15 @@ jobs:
       - name: Install system packages
         run: apt-get update && apt-get install -y make git curl gpg
 
-      - name: Linting
-        run: make lint
+      # Stop the build if there are Python syntax errors or undefined names
+      - name: Run flake8 code quality checks
+        run: |
+          flake8 service tests --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 service tests --count --max-complexity=10 --max-line-length=127 --statistics
+
+      # Run pylint on the service and tests packages
+      - name: Run pylint quality checks
+        run: pylint service tests --max-line-length=127
 
       - name: Run tests with coverage
         run: pytest --pspec --cov=service --cov-fail-under=95 --cov-report=xml --disable-warnings

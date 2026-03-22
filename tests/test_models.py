@@ -22,6 +22,7 @@ Test cases for Pet Model
 import os
 import logging
 from unittest import TestCase
+from unittest.mock import patch
 from wsgi import app
 from service.models import Customer, DataValidationError, db
 from .factories import CustomerFactory
@@ -192,8 +193,6 @@ class TestCustomer(TestCase):
 
     def test_create_raises_db_error(self):
         """It should raise DataValidationError when the DB raises on create"""
-        from unittest.mock import patch
-
         customer = CustomerFactory()
         with patch(
             "service.models.db.session.commit", side_effect=Exception("DB error")
@@ -202,8 +201,6 @@ class TestCustomer(TestCase):
 
     def test_update_raises_db_error(self):
         """It should raise DataValidationError when the DB raises on update"""
-        from unittest.mock import patch
-
         customer = CustomerFactory()
         customer.create()
         with patch(
@@ -213,8 +210,6 @@ class TestCustomer(TestCase):
 
     def test_delete_raises_db_error(self):
         """It should raise DataValidationError when the DB raises on delete"""
-        from unittest.mock import patch
-
         customer = CustomerFactory()
         customer.create()
         with patch(
@@ -225,7 +220,9 @@ class TestCustomer(TestCase):
     def test_deserialize_attribute_error(self):
         """It should raise DataValidationError when data raises AttributeError on access"""
 
-        class BadData:
+        class BadData:  # pylint: disable=too-few-public-methods
+            """Test helper that raises AttributeError on attribute access."""
+
             def __getitem__(self, key):
                 raise AttributeError("bad attribute")
 
