@@ -64,6 +64,8 @@ All endpoints are under the base path ```/customers ```
 | GET | ```/customers``` | Lists all the customers and their details |
 | GET | ```/customers/{id}``` | Retrieves a single customers details |
 | PUT | ```/customers/{id}``` | Updates a single customers details |
+| PUT | ```/customers/{id}/suspend``` | Sets customer status to ```suspended``` |
+| PUT | ```/customers/{id}/activate``` | Sets customer status to ```active``` |
 | DELETE | ```/customers/{id}``` | Deletes a single customers details |
    
 ## Contents
