@@ -261,3 +261,32 @@ class TestYourResourceService(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.get_json()
         self.assertEqual(len(data), 4)
+
+    def test_suspend_a_customer(self):
+        """It should Suspend an existing Customer"""
+        test_customer = CustomerFactory()
+        test_customer.create()
+
+        response = self.client.put(f"{BASE_URL}/{test_customer.id}/suspend")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        self.assertEqual(data["status"], "suspended")
+
+    def test_suspend_nonexistent_customer(self):
+        """It should return 404 when suspending a Customer that does not exist"""
+        response = self.client.put(f"{BASE_URL}/0/suspend")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        data = response.get_json()
+        self.assertIn("was not found", data["message"])
+
+    def test_suspended_status_persists(self):
+        """It should persist the suspended status after a GET"""
+        test_customer = CustomerFactory()
+        test_customer.create()
+
+        self.client.put(f"{BASE_URL}/{test_customer.id}/suspend")
+
+        response = self.client.get(f"{BASE_URL}/{test_customer.id}")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        self.assertEqual(data["status"], "suspended")

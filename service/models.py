@@ -28,6 +28,7 @@ class Customer(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(63), nullable=False)
     address = db.Column(db.String(255), nullable=False)
+    status = db.Column(db.String(63), nullable=False, default="active")
 
     def __repr__(self):
         return f"<Customer {self.name} id=[{self.id}]>"
@@ -75,6 +76,7 @@ class Customer(db.Model):
             "id": self.id,
             "name": self.name,
             "address": self.address,
+            "status": self.status,
         }
 
     def deserialize(self, data):
@@ -87,6 +89,7 @@ class Customer(db.Model):
         try:
             self.name = data["name"]
             self.address = data["address"]
+            self.status = data.get("status", "active")
         except AttributeError as error:
             raise DataValidationError("Invalid attribute: " + error.args[0]) from error
         except KeyError as error:
