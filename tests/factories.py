@@ -17,3 +17,4 @@ class CustomerFactory(factory.Factory):
     id = factory.Sequence(lambda n: n)
     name = factory.Faker("name")
     address = factory.Faker("address")
+    status = "active"

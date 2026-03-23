@@ -142,6 +142,32 @@ def list_customers():
 
 
 ######################################################################
+# SUSPEND A CUSTOMER
+######################################################################
+@app.route("/customers/<int:customer_id>/suspend", methods=["PUT"])
+def suspend_customer(customer_id):
+    """
+    Suspend a Customer
+
+    This endpoint will suspend a Customer based on the id specified in the path
+    """
+    app.logger.info("Request to suspend customer with id: %s", customer_id)
+
+    customer = Customer.find(customer_id)
+    if not customer:
+        abort(
+            status.HTTP_404_NOT_FOUND,
+            f"Customer with id '{customer_id}' was not found.",
+        )
+
+    customer.status = "suspended"
+    customer.update()
+
+    app.logger.info("Customer with ID: %d suspended.", customer.id)
+    return jsonify(customer.serialize()), status.HTTP_200_OK
+
+
+######################################################################
 # UTILITY FUNCTIONS
 ######################################################################
 
