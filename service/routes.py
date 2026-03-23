@@ -124,7 +124,7 @@ def update_customers(customer_id):
 # LIST ALL CUSTOMERS
 ######################################################################
 @app.route("/customers", methods=["GET"])
-def list_pets():
+def list_customers():
     """Returns all of the Customers"""
     app.logger.info("Request for the customer list")
 
