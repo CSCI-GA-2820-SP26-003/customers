@@ -290,3 +290,32 @@ class TestYourResourceService(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.get_json()
         self.assertEqual(data["status"], "suspended")
+
+    def test_activate_a_customer(self):
+        """It should Activate a suspended Customer"""
+        test_customer = CustomerFactory(status="suspended")
+        test_customer.create()
+
+        response = self.client.put(f"{BASE_URL}/{test_customer.id}/activate")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        self.assertEqual(data["status"], "active")
+
+    def test_activate_nonexistent_customer(self):
+        """It should return 404 when activating a Customer that does not exist"""
+        response = self.client.put(f"{BASE_URL}/0/activate")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        data = response.get_json()
+        self.assertIn("was not found", data["message"])
+
+    def test_activated_status_persists(self):
+        """It should persist the active status after an activate call and GET"""
+        test_customer = CustomerFactory(status="suspended")
+        test_customer.create()
+
+        self.client.put(f"{BASE_URL}/{test_customer.id}/activate")
+
+        response = self.client.get(f"{BASE_URL}/{test_customer.id}")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        self.assertEqual(data["status"], "active")

@@ -168,6 +168,32 @@ def suspend_customer(customer_id):
 
 
 ######################################################################
+# ACTIVATE A CUSTOMER
+######################################################################
+@app.route("/customers/<int:customer_id>/activate", methods=["PUT"])
+def activate_customer(customer_id):
+    """
+    Activate a Customer
+
+    This endpoint will activate a Customer based on the id specified in the path
+    """
+    app.logger.info("Request to activate customer with id: %s", customer_id)
+
+    customer = Customer.find(customer_id)
+    if not customer:
+        abort(
+            status.HTTP_404_NOT_FOUND,
+            f"Customer with id '{customer_id}' was not found.",
+        )
+
+    customer.status = "active"
+    customer.update()
+
+    app.logger.info("Customer with ID: %d activated.", customer.id)
+    return jsonify(customer.serialize()), status.HTTP_200_OK
+
+
+######################################################################
 # UTILITY FUNCTIONS
 ######################################################################
 
