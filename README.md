@@ -44,6 +44,48 @@ These should be copied using a bash shell as follows:
    ```
    The service will be available at http://localhost:8080
 
+## UI
+
+The service includes a customer administration UI scaffold that is served by Flask.
+
+- UI page: http://localhost:8080/ui
+- Root endpoint: http://localhost:8080/
+- Health endpoint: http://localhost:8080/health
+
+The current UI is a static scaffold for the customer workflows. It includes the page layout and controls for create, retrieve, list, update, delete, suspend, and activate operations, but it does not yet wire those controls to API calls.
+
+## Kubernetes Deployment
+
+This repository includes Kubernetes manifests for both the Customers service and a PostgreSQL database.
+
+### Kubernetes Resources
+
+- `k8s/deployment.yaml` deploys the Customers service
+- `k8s/service.yaml` exposes the Customers pod internally in the cluster
+- `k8s/ingress.yaml` exposes the application through the cluster ingress
+- `k8s/postgres/statefulset.yaml` deploys PostgreSQL as a StatefulSet
+- `k8s/postgres/service.yaml` provides stable network identity for PostgreSQL
+- `k8s/postgres/secret.yaml` stores the database credentials and application database URI
+
+### Local Kubernetes Workflow
+
+Use the following commands to build and deploy the application in the local development environment:
+
+```shell
+make cluster
+make build
+make push
+make deploy
+```
+
+After deployment, the application should be reachable through the local ingress at:
+
+```text
+http://localhost:8080/
+http://localhost:8080/health
+http://localhost:8080/ui
+```
+
 ## Running Tests
 ```shell
 make test
@@ -56,19 +98,29 @@ make lint
 Running this command to lint the code
 
 ## API Reference
-All endpoints are under the base path ```/customers ```
+
+Service-level endpoints:
+
+| Method | URL | Description |
+|---|---|---|
+| GET | `/` | Returns service metadata |
+| GET | `/health` | Returns service health status |
+| GET | `/ui` | Returns the customer administration UI page |
+
+Customer resource endpoints are under the base path `/customers`
 
 ### Service Info
 
 | Method | URL | Description |
 |---|---|---|
-| POST | ```/customers``` | Creates a customer. Required fields ```name, address``` |
-| GET | ```/customers``` | Lists all the customers and their details |
-| GET | ```/customers/{id}``` | Retrieves a single customers details |
-| PUT | ```/customers/{id}``` | Updates a single customers details |
-| PUT | ```/customers/{id}/suspend``` | Sets customer status to ```suspended``` |
-| PUT | ```/customers/{id}/activate``` | Sets customer status to ```active``` |
-| DELETE | ```/customers/{id}``` | Deletes a single customers details |
+| POST | `/customers` | Creates a customer. Required fields `name, address` |
+| GET | `/customers` | Lists all customers |
+| GET | `/customers?name={name}` | Queries customers by name |
+| GET | `/customers/{id}` | Retrieves a single customer's details |
+| PUT | `/customers/{id}` | Updates a single customer's details |
+| PUT | `/customers/{id}/suspend` | Sets customer status to `suspended` |
+| PUT | `/customers/{id}/activate` | Sets customer status to `active` |
+| DELETE | `/customers/{id}` | Deletes a single customer's details |
    
 ## Contents
 
@@ -87,11 +139,22 @@ service/                   - service python package
 ├── config.py              - configuration parameters
 ├── models.py              - module with business models
 ├── routes.py              - module with service routes
+├── static                 - CSS and JavaScript assets for the UI
+├── templates              - HTML templates rendered by Flask
 └── common                 - common code package
     ├── cli_commands.py    - Flask command to recreate all tables
     ├── error_handlers.py  - HTTP error handling code
     ├── log_handlers.py    - logging setup code
     └── status.py          - HTTP status constants
+
+k8s/                       - Kubernetes manifests for app deployment
+├── deployment.yaml        - Customers service deployment
+├── service.yaml           - Customers service definition
+├── ingress.yaml           - Ingress for external access
+└── postgres/              - PostgreSQL manifests
+    ├── secret.yaml        - Database secrets
+    ├── service.yaml       - Headless service for PostgreSQL
+    └── statefulset.yaml   - PostgreSQL StatefulSet
 
 tests/                     - test cases package
 ├── __init__.py            - package initializer
