@@ -52,6 +52,41 @@ section h2 {
   padding-bottom: 8px;
 }
 
+.section-copy {
+  margin-bottom: 16px;
+  color: #666;
+  line-height: 1.5;
+}
+
+.status-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.status-card {
+  border: 1px solid #d9e4f0;
+  border-radius: 4px;
+  background-color: #f8fbff;
+  padding: 14px;
+}
+
+.status-label {
+  display: block;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6a7d92;
+  margin-bottom: 6px;
+}
+
+.status-value {
+  display: block;
+  font-size: 15px;
+  font-weight: bold;
+  color: #2c3e50;
+}
+
 .form-group {
   display: flex;
   align-items: center;
@@ -96,6 +131,7 @@ section h2 {
 .btn-secondary{ background-color: #888;    color: white; }
 .btn-success  { background-color: #4cae4c; color: white; }
 .btn-danger   { background-color: #d9534f; color: white; }
+.btn-warning  { background-color: #f0ad4e; color: white; }
 
 .btn:hover { opacity: 0.85; }
 
@@ -125,6 +161,12 @@ section h2 {
 #results-table tbody tr:hover {
   background-color: #eaf3fb;
   cursor: pointer;
+}
+
+.empty-state {
+  text-align: center;
+  color: #777;
+  font-style: italic;
 }
 
 /* Flash message */

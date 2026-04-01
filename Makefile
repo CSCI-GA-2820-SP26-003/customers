@@ -62,9 +62,10 @@ cluster: ## Create a K3D Kubernetes cluster with load balancer and registry
 .PHONY: registry-setup
 registry-setup: ## Update /etc/hosts with the real cluster-registry IP and configure insecure registry
 	$(info Updating cluster-registry IP in /etc/hosts...)
-	$(eval REGISTRY_IP := $(shell docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' cluster-registry | grep -oE '([0-9]+\.){3}[0-9]+' | tail -1))
-	sudo sed -i '/cluster-registry/d' /etc/hosts
-	echo "$(REGISTRY_IP) cluster-registry" | sudo tee -a /etc/hosts
+	$(eval REGISTRY_IP := $(shell docker inspect -f '{{.NetworkSettings.Networks.bridge.IPAddress}}' cluster-registry))
+	grep -v 'cluster-registry' /etc/hosts > /tmp/hosts.tmp
+	echo "$(REGISTRY_IP) cluster-registry" >> /tmp/hosts.tmp
+	sudo cp /tmp/hosts.tmp /etc/hosts
 	$(info cluster-registry is now at $(REGISTRY_IP))
 
 .PHONY: cluster-rm
@@ -76,6 +77,8 @@ cluster-rm: ## Remove a K3D Kubernetes cluster
 deploy: ## Deploy the service on local Kubernetes
 	$(info Deploying service locally...)
 	kubectl apply -R -f k8s/
+	kubectl rollout restart deployment/customers
+	kubectl rollout status deployment/customers
 
 ############################################################
 # COMMANDS FOR BUILDING THE IMAGE
@@ -96,7 +99,7 @@ build:	## Build the project container image for local platform
 	docker build --rm --pull --tag $(IMAGE) .
 
 .PHONY: push
-push:	## Push the image to the container registry
+push: registry-setup	## Push the image to the container registry
 	$(info Pushing $(IMAGE)...)
 	docker push $(IMAGE)
 
