@@ -57,6 +57,15 @@ secret: ## Generate a secret hex key
 cluster: ## Create a K3D Kubernetes cluster with load balancer and registry
 	$(info Creating Kubernetes cluster $(CLUSTER) with a registry and 2 worker nodes...)
 	k3d cluster create $(CLUSTER) --agents 2 --registry-create cluster-registry:0.0.0.0:5000 --port '8080:80@loadbalancer'
+	$(MAKE) registry-setup
+
+.PHONY: registry-setup
+registry-setup: ## Update /etc/hosts with the real cluster-registry IP and configure insecure registry
+	$(info Updating cluster-registry IP in /etc/hosts...)
+	$(eval REGISTRY_IP := $(shell docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' cluster-registry | grep -oE '([0-9]+\.){3}[0-9]+' | tail -1))
+	sudo sed -i '/cluster-registry/d' /etc/hosts
+	echo "$(REGISTRY_IP) cluster-registry" | sudo tee -a /etc/hosts
+	$(info cluster-registry is now at $(REGISTRY_IP))
 
 .PHONY: cluster-rm
 cluster-rm: ## Remove a K3D Kubernetes cluster
