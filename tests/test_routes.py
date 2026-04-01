@@ -78,6 +78,14 @@ class TestYourResourceService(TestCase):
         self.assertIn("version", data)
         self.assertIn("paths", data)
 
+    def test_health(self):
+        """It should be healthy"""
+        response = self.client.get("/health")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        self.assertEqual(data["status"], 200)
+        self.assertEqual(data["message"], "Healthy")
+
     def test_create_customer(self):
         """It should Create a new Customer"""
         test_customer = CustomerFactory()
