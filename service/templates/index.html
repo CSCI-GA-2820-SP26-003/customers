@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Customer Administration</title>
+    <link rel="stylesheet" href="/static/css/main.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>Customer Administration</h1>
+        <p>Manage your customer database</p>
+      </header>
+
+      <section id="search-section">
+        <h2>Search Customers</h2>
+        <div class="form-group">
+          <label for="search_id">Customer ID</label>
+          <input type="text" id="search_id" name="id" placeholder="Enter customer ID" />
+        </div>
+        <div class="form-group">
+          <label for="search_name">Name</label>
+          <input type="text" id="search_name" name="name" placeholder="Enter customer name" />
+        </div>
+        <div class="button-row">
+          <button id="search-btn" class="btn btn-primary">Search</button>
+          <button id="clear-btn" class="btn btn-secondary">Clear</button>
+        </div>
+      </section>
+
+      <section id="results-section">
+        <h2>Results</h2>
+        <table id="results-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Address</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="results-body">
+            <!-- Results will be populated here -->
+          </tbody>
+        </table>
+      </section>
+
+      <section id="customer-form-section">
+        <h2>Customer Details</h2>
+        <form id="customer-form">
+          <div class="form-group">
+            <label for="customer_id">Customer ID</label>
+            <input type="text" id="customer_id" name="id" placeholder="(auto-assigned)" readonly />
+          </div>
+          <div class="form-group">
+            <label for="customer_name">Name</label>
+            <input type="text" id="customer_name" name="name" placeholder="Enter full name" />
+          </div>
+          <div class="form-group">
+            <label for="customer_address">Address</label>
+            <input type="text" id="customer_address" name="address" placeholder="Enter address" />
+          </div>
+          <div class="form-group">
+            <label for="customer_status">Status</label>
+            <select id="customer_status" name="status">
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+          <div class="button-row">
+            <button type="button" id="create-btn" class="btn btn-success">Create</button>
+            <button type="button" id="update-btn" class="btn btn-primary">Update</button>
+            <button type="button" id="delete-btn" class="btn btn-danger">Delete</button>
+            <button type="button" id="retrieve-btn" class="btn btn-secondary">Retrieve</button>
+          </div>
+        </form>
+      </section>
+
+      <div id="flash-message" class="flash hidden"></div>
+    </div>
+
+    <script src="/static/js/rest_api.js"></script>
+  </body>
+</html>
