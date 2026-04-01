@@ -58,7 +58,7 @@ def customer_ui():
 @app.route("/health")
 def health_check():
     """Health endpoint for kubernetes"""
-    return jsonify(status=200, message="Healthy"), status.HTTP_200_OK
+    return jsonify(status="OK"), status.HTTP_200_OK
 
 
 ######################################################################

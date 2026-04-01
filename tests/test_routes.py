@@ -83,8 +83,7 @@ class TestYourResourceService(TestCase):
         response = self.client.get("/health")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.get_json()
-        self.assertEqual(data["status"], 200)
-        self.assertEqual(data["message"], "Healthy")
+        self.assertEqual(data["status"], "OK")
 
     def test_create_customer(self):
         """It should Create a new Customer"""
