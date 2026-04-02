@@ -85,6 +85,12 @@ class TestYourResourceService(TestCase):
         data = response.get_json()
         self.assertEqual(data["status"], "OK")
 
+    def test_ui(self):
+        """It should render the customer administration UI page"""
+        response = self.client.get("/ui")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("Customer Administration", response.get_data(as_text=True))
+
     def test_create_customer(self):
         """It should Create a new Customer"""
         test_customer = CustomerFactory()
