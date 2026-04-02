@@ -78,6 +78,10 @@ make push
 make deploy
 ```
 
+For local K3D development, `make push` imports the image directly into the cluster instead of pushing to an HTTP registry. This avoids per-machine Docker insecure-registry configuration and keeps the workflow portable across developer environments.
+
+`make cluster` is idempotent and reuses the existing K3D cluster if it already exists. `make deploy` also bootstraps the full local flow by ensuring the cluster exists, building the image, importing it into K3D, and then applying the Kubernetes manifests.
+
 After deployment, the application should be reachable through the local ingress at:
 
 ```text

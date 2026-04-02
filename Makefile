@@ -2,7 +2,7 @@
 REGISTRY ?= cluster-registry:5000
 IMAGE_NAME ?= customers
 IMAGE_TAG ?= 1.0
-IMAGE ?= $(REGISTRY)/$(IMAGE_NAME):$(IMAGE_TAG)
+IMAGE ?= $(IMAGE_NAME):$(IMAGE_TAG)
 PLATFORM ?= "linux/amd64,linux/arm64"
 CLUSTER ?= nyu-devops
 
@@ -54,27 +54,21 @@ secret: ## Generate a secret hex key
 ##@ Kubernetes
 
 .PHONY: cluster
-cluster: ## Create a K3D Kubernetes cluster with load balancer and registry
-	$(info Creating Kubernetes cluster $(CLUSTER) with a registry and 2 worker nodes...)
-	k3d cluster create $(CLUSTER) --agents 2 --registry-create cluster-registry:0.0.0.0:5000 --port '8080:80@loadbalancer'
-	$(MAKE) registry-setup
-
-.PHONY: registry-setup
-registry-setup: ## Update /etc/hosts with the real cluster-registry IP and configure insecure registry
-	$(info Updating cluster-registry IP in /etc/hosts...)
-	$(eval REGISTRY_IP := $(shell docker inspect -f '{{.NetworkSettings.Networks.bridge.IPAddress}}' cluster-registry))
-	grep -v 'cluster-registry' /etc/hosts > /tmp/hosts.tmp
-	echo "$(REGISTRY_IP) cluster-registry" >> /tmp/hosts.tmp
-	sudo cp /tmp/hosts.tmp /etc/hosts
-	$(info cluster-registry is now at $(REGISTRY_IP))
+cluster: ## Create or reuse a K3D Kubernetes cluster with 2 worker nodes
+	@if k3d cluster list | awk 'NR > 1 {print $$1}' | grep -Fxq '$(CLUSTER)'; then \
+		echo "Kubernetes cluster $(CLUSTER) already exists; reusing it..."; \
+	else \
+		echo "Creating Kubernetes cluster $(CLUSTER) with 2 worker nodes..."; \
+		k3d cluster create $(CLUSTER) --agents 2 --port '8080:80@loadbalancer'; \
+	fi
 
 .PHONY: cluster-rm
 cluster-rm: ## Remove a K3D Kubernetes cluster
 	$(info Removing Kubernetes cluster...)
-	k3d cluster delete nyu-devops
+	k3d cluster delete $(CLUSTER)
 
 .PHONY: deploy
-deploy: ## Deploy the service on local Kubernetes
+deploy: push ## Deploy the service on local Kubernetes
 	$(info Deploying service locally...)
 	kubectl apply -R -f k8s/
 	kubectl rollout restart deployment/customers
@@ -99,14 +93,14 @@ build:	## Build the project container image for local platform
 	docker build --rm --pull --tag $(IMAGE) .
 
 .PHONY: push
-push: registry-setup	## Push the image to the container registry
-	$(info Pushing $(IMAGE)...)
-	docker push $(IMAGE)
+push: cluster build	## Import the image into the local K3D cluster
+	$(info Importing $(IMAGE) into k3d cluster $(CLUSTER)...)
+	k3d image import --cluster $(CLUSTER) $(IMAGE)
 
 .PHONY: buildx
 buildx:	## Build multi-platform image with buildx
-	$(info Building multi-platform image $(IMAGE) for $(PLATFORM)...)
-	docker buildx build --file Dockerfile --pull --platform=$(PLATFORM) --tag $(IMAGE) --push .
+	$(info Building multi-platform image $(REGISTRY)/$(IMAGE_NAME):$(IMAGE_TAG) for $(PLATFORM)...)
+	docker buildx build --file Dockerfile --pull --platform=$(PLATFORM) --tag $(REGISTRY)/$(IMAGE_NAME):$(IMAGE_TAG) --push .
 
 .PHONY: remove
 remove:	## Stop and remove the buildx builder
