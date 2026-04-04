@@ -80,6 +80,8 @@ def create_customers():
 
     customer = Customer()
     customer.deserialize(request.get_json())
+    if not customer.name or not customer.name.strip() or not customer.address or not customer.address.strip():
+        abort(status.HTTP_400_BAD_REQUEST, "Name and Address are required and cannot be empty")
     customer.create()
     message = customer.serialize()
     location_url = request.base_url + "/" + str(customer.id)
