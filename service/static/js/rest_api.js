@@ -71,6 +71,41 @@ $(function () {
     });
 
     // ****************************************
+    // Retrieve a Customer by ID
+    // ****************************************
+    $("#retrieve-btn").click(function () {
+        let customer_id = $("#search_id").val();
+
+        if (!customer_id || customer_id.trim() === "") {
+            flash_message("Error: Customer ID is required");
+            return;
+        }
+
+        let ajax = $.ajax({
+            type: "GET",
+            url: `/customers/${customer_id}`,
+            contentType: "application/json",
+        });
+
+        ajax.done(function (res) {
+            update_form_data(res);
+            let row = `<tr>
+                <td>${res.id}</td>
+                <td>${res.name}</td>
+                <td>${res.address}</td>
+                <td>${res.status}</td>
+            </tr>`;
+            $("#results-body").empty();
+            $("#results-body").append(row);
+            flash_message("Success");
+        });
+
+        ajax.fail(function (res) {
+            flash_message(res.responseJSON.message);
+        });
+    });
+
+    // ****************************************
     // Reset the Form
     // ****************************************
     $("#reset-form-btn").click(function () {
