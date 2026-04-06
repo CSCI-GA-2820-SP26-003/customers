@@ -52,7 +52,11 @@ The service includes a customer administration UI scaffold that is served by Fla
 - Root endpoint: http://localhost:8080/
 - Health endpoint: http://localhost:8080/health
 
-The current UI is a static scaffold for the customer workflows. It includes the page layout and controls for create, retrieve, list, update, delete, suspend, and activate operations, but it does not yet wire those controls to API calls.
+The UI supports the following wired operations:
+- **Create** — POST /customers
+- **Retrieve by ID** — GET /customers/{id}, populates the form and results table
+
+The remaining controls (update, delete, list, search, suspend, activate) are scaffolded but not yet wired to API calls.
 
 ## Kubernetes Deployment
 
@@ -73,16 +77,12 @@ Use the following commands to build and deploy the application in the local deve
 
 ```shell
 make cluster
-make build
-make push
 make deploy
 ```
 
-For local K3D development, `make push` imports the image directly into the cluster instead of pushing to an HTTP registry. This avoids per-machine Docker insecure-registry configuration and keeps the workflow portable across developer environments.
+`make cluster` creates the k3d cluster (or reuses it if it already exists) and automatically configures `kubectl` to point at it. `make deploy` builds the image, imports it into the cluster, and applies all Kubernetes manifests.
 
-`make cluster` is idempotent and reuses the existing K3D cluster if it already exists. `make deploy` also bootstraps the full local flow by ensuring the cluster exists, building the image, importing it into K3D, and then applying the Kubernetes manifests.
-
-After deployment, the application should be reachable through the local ingress at:
+After deployment, the application is reachable at:
 
 ```text
 http://localhost:8080/
@@ -91,15 +91,63 @@ http://localhost:8080/ui
 ```
 
 ## Running Tests
+
+### Unit Tests
+
 ```shell
 make test
 ```
-Running this command runs the full test suite with pytest and displays the coverage %
+
+Runs the full pytest suite with coverage reporting. Coverage must be ≥ 95% to pass.
 
 ```shell
 make lint
 ```
-Running this command to lint the code
+
+Runs `flake8` and `pylint` on `service/` and `tests/`.
+
+### BDD / Integration Tests (Behave + Selenium)
+
+BDD tests use Selenium with a headless Chromium browser and require the service to be running and reachable.
+
+#### One-time setup
+
+If `behave` is not found, install all dev dependencies:
+
+```shell
+make install
+```
+
+> **Note:** Chromium is pre-installed in the dev container image. No manual browser setup is needed.
+
+#### Option A — Run against a local service
+
+Open two terminals:
+
+**Terminal 1 — start the service:**
+```shell
+make run
+```
+
+**Terminal 2 — run BDD tests:**
+```shell
+BASE_URL=http://localhost:8080 behave
+```
+
+#### Option B — Run against the Kubernetes cluster
+
+Deploy first, then run tests:
+
+```shell
+make deploy
+BASE_URL=http://localhost:8080 behave
+```
+
+#### Running a single scenario
+
+```shell
+BASE_URL=http://localhost:8080 behave features/customers.feature --name "Read a Customer"
+```
 
 ## API Reference
 
