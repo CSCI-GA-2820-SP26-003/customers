@@ -138,6 +138,32 @@ class TestYourResourceService(TestCase):
         data = response.get_json()
         self.assertIn("address", data["message"])
 
+    def test_create_customer_empty_name(self):
+        """It should not Create a Customer with an empty name"""
+        test_customer = CustomerFactory()
+        customer_data = test_customer.serialize()
+        customer_data["name"] = ""
+        logging.debug("Test Customer with empty name: %s", customer_data)
+        response = self.client.post(
+            "/customers", json=customer_data, content_type="application/json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        data = response.get_json()
+        self.assertIn("required", data["message"])
+
+    def test_create_customer_empty_address(self):
+        """It should not Create a Customer with an empty address"""
+        test_customer = CustomerFactory()
+        customer_data = test_customer.serialize()
+        customer_data["address"] = ""
+        logging.debug("Test Customer with empty address: %s", customer_data)
+        response = self.client.post(
+            "/customers", json=customer_data, content_type="application/json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        data = response.get_json()
+        self.assertIn("required", data["message"])
+
     def test_create_customer_no_content_type(self):
         """It should not Create a Customer with no Content-Type"""
         test_customer = CustomerFactory()
