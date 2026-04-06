@@ -49,7 +49,7 @@ def step_impl(context):
         )
         expect(context.resp.status_code).equal_to(HTTP_204_NO_CONTENT)
 
-    # load the database with new pets
+    # load the database with new customers
     for row in context.table:
         payload = {
             "first_name": row["first_name"],

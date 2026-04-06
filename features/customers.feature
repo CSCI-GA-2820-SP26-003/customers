@@ -1,10 +1,10 @@
-Feature: The pet store service back-end
-    As a Pet Store Owner
+Feature: The store service back-end
+    As a Store Owner
     I need a RESTful catalog service
-    So that I can keep track of all my pets
+    So that I can keep track of all my customers
 
 Background:
-    Given the following pets
+    Given the following customers
         | first_name  | last_name | email               | active  |
         | John        | Adams     | john@example.com    | TRUE    |
         | Custer      | William   | custer@example.com  | TRUE    |
