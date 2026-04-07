@@ -98,3 +98,30 @@ def step_impl(context, text_string, element_id):
         EC.text_to_be_present_in_element_value((By.ID, element_id), text_string)
     )
     expect(found).equal_to(True)
+
+
+@then('I should see "{text_string}" in the results')
+def step_impl(context, text_string):
+    """Check that the results table contains a string"""
+    found = WebDriverWait(context.driver, context.wait_seconds).until(
+        EC.text_to_be_present_in_element((By.ID, "results-body"), text_string)
+    )
+    expect(found).equal_to(True)
+
+
+@then('I should not see "{text_string}" in the results')
+def step_impl(context, text_string):
+    """Check that the results table does NOT contain a string"""
+    element = context.driver.find_element(By.ID, "results-body")
+    expect(text_string in element.text).equal_to(False)
+
+
+@when('I select "{value}" in the "{element_id}" dropdown')
+def step_impl(context, value, element_id):
+    """Select a value from a dropdown"""
+    from selenium.webdriver.support.ui import Select
+    element = WebDriverWait(context.driver, context.wait_seconds).until(
+        EC.presence_of_element_located((By.ID, element_id))
+    )
+    select = Select(element)
+    select.select_by_value(value)
