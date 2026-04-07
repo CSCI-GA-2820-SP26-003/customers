@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Customer Administration</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+      integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+      crossorigin="anonymous"></script>
+  </head>
+  <body>
+    <main class="page">
+      <h1>Customer Administration</h1>
+
+      <p id="flash" class="flash" role="status" aria-live="polite"></p>
+
+      <section class="panel" aria-labelledby="lookup-heading">
+        <h2 id="lookup-heading">Look up customer</h2>
+        <div class="row">
+          <label for="customer_id">Customer ID</label>
+          <input id="customer_id" name="customer_id" type="number" min="1" />
+          <button type="button" id="btn-retrieve">Retrieve</button>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="detail-heading">
+        <h2 id="detail-heading">Customer details</h2>
+        <div class="field">
+          <label for="customer_name">Name</label>
+          <input id="customer_name" type="text" readonly />
+        </div>
+        <div class="field">
+          <label for="customer_address">Address</label>
+          <input id="customer_address" type="text" readonly />
+        </div>
+        <div class="field">
+          <label for="customer_status">Status</label>
+          <input id="customer_status" type="text" readonly />
+        </div>
+        <div class="actions">
+          <button type="button" id="btn-suspend">Suspend</button>
+          <button type="button" id="btn-activate">Activate</button>
+        </div>
+      </section>
+    </main>
+    <script src="{{ url_for('static', filename='js/rest_api.js') }}"></script>
+  </body>
+</html>

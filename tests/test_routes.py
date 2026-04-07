@@ -78,6 +78,14 @@ class TestYourResourceService(TestCase):
         self.assertIn("version", data)
         self.assertIn("paths", data)
 
+    def test_admin_ui_page(self):
+        """It should serve the customer administration page"""
+        resp = self.client.get("/ui")
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertIn(b"Customer Administration", resp.data)
+        self.assertIn(b"btn-suspend", resp.data)
+        self.assertIn(b"btn-activate", resp.data)
+
     def test_create_customer(self):
         """It should Create a new Customer"""
         test_customer = CustomerFactory()
