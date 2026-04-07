@@ -50,12 +50,13 @@ def step_impl(context):
         expect(context.resp.status_code).equal_to(HTTP_204_NO_CONTENT)
 
     # load the database with new customers
+    context.customer_list = {}
     for row in context.table:
         payload = {
-            "first_name": row["first_name"],
-            "last_name": row["last_name"],
-            "email": row["email"],
-            "available": row["active"] in ["True", "true", "1"],
+            "name": row["name"],
+            "address": row["address"],
+            "status": row["status"],
         }
         context.resp = requests.post(rest_endpoint, json=payload, timeout=WAIT_TIMEOUT)
         expect(context.resp.status_code).equal_to(HTTP_201_CREATED)
+        context.customer_list[row["name"]] = context.resp.json()

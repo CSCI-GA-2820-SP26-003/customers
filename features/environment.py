@@ -41,7 +41,9 @@ def get_chrome():
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--headless")
-    return webdriver.Chrome(options=options)
+    options.binary_location = "/usr/bin/chromium"
+    service = webdriver.chrome.service.Service(executable_path="/usr/bin/chromedriver")
+    return webdriver.Chrome(options=options, service=service)
 
 
 def get_firefox():

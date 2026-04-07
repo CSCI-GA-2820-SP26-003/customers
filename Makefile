@@ -61,6 +61,9 @@ cluster: ## Create or reuse a K3D Kubernetes cluster with 2 worker nodes
 		echo "Creating Kubernetes cluster $(CLUSTER) with 2 worker nodes..."; \
 		k3d cluster create $(CLUSTER) --agents 2 --port '8080:80@loadbalancer'; \
 	fi
+	@mkdir -p $(HOME)/.kube
+	@k3d kubeconfig get $(CLUSTER) > $(HOME)/.kube/config
+	@echo "kubectl context configured for cluster $(CLUSTER)"
 
 .PHONY: cluster-rm
 cluster-rm: ## Remove a K3D Kubernetes cluster
@@ -70,7 +73,7 @@ cluster-rm: ## Remove a K3D Kubernetes cluster
 .PHONY: deploy
 deploy: push ## Deploy the service on local Kubernetes
 	$(info Deploying service locally...)
-	kubectl apply -R -f k8s/
+	kubectl apply -R -f k8s/ --validate=false
 	kubectl rollout restart deployment/customers
 	kubectl rollout status deployment/customers
 

@@ -21,6 +21,15 @@ fi
 echo "Making git stop complaining about unsafe folders"
 git config --global --add safe.directory /app
 
+echo "Setting up kubectl context for k3d cluster if it exists..."
+if k3d cluster list 2>/dev/null | grep -q "nyu-devops"; then
+    mkdir -p /home/vscode/.kube
+    k3d kubeconfig get nyu-devops > /home/vscode/.kube/config
+    echo "kubectl context set to k3d-nyu-devops"
+else
+    echo "No k3d cluster found yet. Run 'make cluster' then 'k3d kubeconfig get nyu-devops > ~/.kube/config'"
+fi
+
 echo "**********************************************************************"
 echo "Setup complete"
 echo "**********************************************************************"
