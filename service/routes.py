@@ -44,12 +44,21 @@ def index():
 
 
 ######################################################################
-# ADMIN UI
+# CUSTOMER WEB UI PAGE
 ######################################################################
 @app.route("/ui")
-def admin_ui():
-    """Customer administration page"""
+def customer_ui():
+    """Serves the Customer Administration web page"""
     return render_template("index.html")
+
+
+######################################################################
+# GET HEALTH CHECK
+######################################################################
+@app.route("/health")
+def health_check():
+    """Health endpoint for kubernetes"""
+    return jsonify(status="OK"), status.HTTP_200_OK
 
 
 ######################################################################
@@ -71,6 +80,8 @@ def create_customers():
 
     customer = Customer()
     customer.deserialize(request.get_json())
+    if not customer.name or not customer.name.strip() or not customer.address or not customer.address.strip():
+        abort(status.HTTP_400_BAD_REQUEST, "Name and Address are required and cannot be empty")
     customer.create()
     message = customer.serialize()
     location_url = request.base_url + "/" + str(customer.id)

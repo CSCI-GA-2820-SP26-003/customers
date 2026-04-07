@@ -1,49 +1,118 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Customer Administration</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
-      integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
-      crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" />
   </head>
   <body>
-    <main class="page">
-      <h1>Customer Administration</h1>
+    <div class="container">
+      <header>
+        <h1>Customer Administration</h1>
+        <p>Manage customers through the REST-backed UI</p>
+      </header>
 
-      <p id="flash" class="flash" role="status" aria-live="polite"></p>
-
-      <section class="panel" aria-labelledby="lookup-heading">
-        <h2 id="lookup-heading">Look up customer</h2>
-        <div class="row">
-          <label for="customer_id">Customer ID</label>
-          <input id="customer_id" name="customer_id" type="number" min="1" />
-          <button type="button" id="btn-retrieve">Retrieve</button>
+      <section id="service-status-section">
+        <h2>Service Status</h2>
+        <p class="section-copy">Quick checks against service endpoints.</p>
+        <div class="status-grid">
+          <div class="status-card">
+            <span class="status-label">Root Endpoint</span>
+            <span class="status-value">GET /</span>
+          </div>
+          <div class="status-card">
+            <span class="status-label">Health Endpoint</span>
+            <span class="status-value">GET /health</span>
+          </div>
+          <div class="status-card">
+            <span class="status-label">UI Endpoint</span>
+            <span class="status-value">GET /ui</span>
+          </div>
+        </div>
+        <div class="button-row">
+          <button type="button" id="service-info-btn" class="btn btn-primary">View Service Info</button>
+          <button type="button" id="health-btn" class="btn btn-secondary">Check Health</button>
         </div>
       </section>
 
-      <section class="panel" aria-labelledby="detail-heading">
-        <h2 id="detail-heading">Customer details</h2>
-        <div class="field">
-          <label for="customer_name">Name</label>
-          <input id="customer_name" type="text" readonly />
+      <section id="search-section">
+        <h2>Find Customers</h2>
+        <p class="section-copy">Retrieve by ID, query by name, or list all.</p>
+        <div class="form-group">
+          <label for="search_id">Customer ID</label>
+          <input type="text" id="search_id" name="search_id" placeholder="Enter customer ID for GET /customers/{id}" />
         </div>
-        <div class="field">
-          <label for="customer_address">Address</label>
-          <input id="customer_address" type="text" readonly />
+        <div class="form-group">
+          <label for="search_name">Customer Name</label>
+          <input type="text" id="search_name" name="search_name" placeholder="Enter customer name for GET /customers?name=" />
         </div>
-        <div class="field">
-          <label for="customer_status">Status</label>
-          <input id="customer_status" type="text" readonly />
-        </div>
-        <div class="actions">
-          <button type="button" id="btn-suspend">Suspend</button>
-          <button type="button" id="btn-activate">Activate</button>
+        <div class="button-row">
+          <button type="button" id="retrieve-btn" class="btn btn-primary">Retrieve by ID</button>
+          <button type="button" id="search-btn" class="btn btn-primary">Query by Name</button>
+          <button type="button" id="list-btn" class="btn btn-secondary">List All</button>
+          <button type="button" id="clear-btn" class="btn btn-secondary">Clear Search</button>
         </div>
       </section>
-    </main>
+
+      <section id="customer-form-section">
+        <h2>Customer Details</h2>
+        <p class="section-copy">Create, update, delete, suspend, or activate.</p>
+        <form id="customer-form">
+          <div class="form-group">
+            <label for="customer_id">Customer ID</label>
+            <input type="text" id="customer_id" name="id" placeholder="(auto-assigned)" readonly />
+          </div>
+          <div class="form-group">
+            <label for="customer_name">Name</label>
+            <input type="text" id="customer_name" name="name" placeholder="Enter full name" />
+          </div>
+          <div class="form-group">
+            <label for="customer_address">Address</label>
+            <input type="text" id="customer_address" name="address" placeholder="Enter address" />
+          </div>
+          <div class="form-group">
+            <label for="customer_status">Status</label>
+            <select id="customer_status" name="status">
+              <option value="active">Active</option>
+              <option value="suspended">Suspended</option>
+            </select>
+          </div>
+          <div class="button-row">
+            <button type="button" id="create-btn" class="btn btn-success">Create</button>
+            <button type="button" id="update-btn" class="btn btn-primary">Update</button>
+            <button type="button" id="delete-btn" class="btn btn-danger">Delete</button>
+            <button type="button" id="suspend-btn" class="btn btn-warning">Suspend</button>
+            <button type="button" id="activate-btn" class="btn btn-success">Activate</button>
+            <button type="reset" id="reset-form-btn" class="btn btn-secondary">Reset Form</button>
+          </div>
+        </form>
+      </section>
+
+      <section id="results-section">
+        <h2>Results</h2>
+        <p class="section-copy">Rows returned from list, retrieve, or name query.</p>
+        <table id="results-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Address</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="results-body">
+            <tr>
+              <td colspan="4" class="empty-state">No data loaded yet.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <div id="flash-message" class="flash info"></div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="{{ url_for('static', filename='js/rest_api.js') }}"></script>
   </body>
 </html>

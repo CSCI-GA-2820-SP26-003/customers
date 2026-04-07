@@ -78,13 +78,21 @@ class TestYourResourceService(TestCase):
         self.assertIn("version", data)
         self.assertIn("paths", data)
 
-    def test_admin_ui_page(self):
-        """It should serve the customer administration page"""
-        resp = self.client.get("/ui")
-        self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        self.assertIn(b"Customer Administration", resp.data)
-        self.assertIn(b"btn-suspend", resp.data)
-        self.assertIn(b"btn-activate", resp.data)
+    def test_health(self):
+        """It should be healthy"""
+        response = self.client.get("/health")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        self.assertEqual(data["status"], "OK")
+
+    def test_ui(self):
+        """It should render the customer administration UI page"""
+        response = self.client.get("/ui")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        html = response.get_data(as_text=True)
+        self.assertIn("Customer Administration", html)
+        self.assertIn("suspend-btn", html)
+        self.assertIn("activate-btn", html)
 
     def test_create_customer(self):
         """It should Create a new Customer"""
@@ -132,6 +140,32 @@ class TestYourResourceService(TestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         data = response.get_json()
         self.assertIn("address", data["message"])
+
+    def test_create_customer_empty_name(self):
+        """It should not Create a Customer with an empty name"""
+        test_customer = CustomerFactory()
+        customer_data = test_customer.serialize()
+        customer_data["name"] = ""
+        logging.debug("Test Customer with empty name: %s", customer_data)
+        response = self.client.post(
+            "/customers", json=customer_data, content_type="application/json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        data = response.get_json()
+        self.assertIn("required", data["message"])
+
+    def test_create_customer_empty_address(self):
+        """It should not Create a Customer with an empty address"""
+        test_customer = CustomerFactory()
+        customer_data = test_customer.serialize()
+        customer_data["address"] = ""
+        logging.debug("Test Customer with empty address: %s", customer_data)
+        response = self.client.post(
+            "/customers", json=customer_data, content_type="application/json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        data = response.get_json()
+        self.assertIn("required", data["message"])
 
     def test_create_customer_no_content_type(self):
         """It should not Create a Customer with no Content-Type"""
