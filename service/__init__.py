@@ -19,7 +19,8 @@ This module creates and configures the Flask app and sets up the logging
 and SQL database
 """
 import sys
-from flask import Flask
+from flask import Flask, jsonify, render_template
+from flask_restx import Api
 from service import config
 from service.common import log_handlers
 
@@ -36,13 +37,54 @@ def create_app():
     # Initialize Plugins
     # pylint: disable=import-outside-toplevel
     from service.models import db
+
     db.init_app(app)
+
+    # Register non-API routes BEFORE Flask-RESTX to prevent apidoc '/' conflict
+    from service.common import status  # noqa: E402
+
+    @app.route("/")
+    def index():
+        """Root URL response"""
+        return (
+            jsonify(
+                name="Customer REST API Service",
+                version="1.0",
+                paths="/api/customers",
+            ),
+            status.HTTP_200_OK,
+        )
+
+    @app.route("/health")
+    def health_check():
+        """Health endpoint for kubernetes"""
+        return jsonify(status="OK"), status.HTTP_200_OK
+
+    @app.route("/ui")
+    def customer_ui():
+        """Serves the Customer Administration web page"""
+        return render_template("index.html")
+
+    # Initialize Flask-RESTX API with /api prefix
+    api = Api(
+        app,
+        version="1.0",
+        title="Customer REST API Service",
+        description="A REST API service for managing Customers",
+        prefix="/api",
+    )
 
     with app.app_context():
         # Dependencies require we import the routes AFTER the Flask app is created
         # pylint: disable=wrong-import-position, wrong-import-order, unused-import
         from service import routes, models  # noqa: F401 E402
         from service.common import error_handlers, cli_commands  # noqa: F401, E402
+
+        # Register the customers namespace under /api/customers
+        api.add_namespace(routes.ns)
+
+        # Register error handlers with the API
+        error_handlers.init_error_handlers(api)
 
         try:
             db.create_all()

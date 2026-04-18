@@ -21,44 +21,16 @@ This service implements a REST API that allows you to Create, Read, Update
 and Delete Customer
 """
 
-from flask import jsonify, request, url_for, abort, render_template
+from flask import request, abort
 from flask import current_app as app  # Import Flask application
+from flask_restx import Namespace, Resource
 from service.models import Customer
 from service.common import status  # HTTP Status Codes
 
-
 ######################################################################
-# GET INDEX
+# Configure the namespace for customer resources
 ######################################################################
-@app.route("/")
-def index():
-    """Root URL response"""
-    return (
-        jsonify(
-            name="Customer REST API Service",
-            version="1.0",
-            paths=url_for("create_customers", _external=True),
-        ),
-        status.HTTP_200_OK,
-    )
-
-
-######################################################################
-# CUSTOMER WEB UI PAGE
-######################################################################
-@app.route("/ui")
-def customer_ui():
-    """Serves the Customer Administration web page"""
-    return render_template("index.html")
-
-
-######################################################################
-# GET HEALTH CHECK
-######################################################################
-@app.route("/health")
-def health_check():
-    """Health endpoint for kubernetes"""
-    return jsonify(status="OK"), status.HTTP_200_OK
+ns = Namespace("customers", description="Customer operations")
 
 
 ######################################################################
@@ -67,150 +39,176 @@ def health_check():
 
 
 ######################################################################
-# CREATE A NEW CUSTOMER
+# LIST ALL CUSTOMERS / CREATE A NEW CUSTOMER
 ######################################################################
-@app.route("/customers", methods=["POST"])
-def create_customers():
-    """
-    Creates a Customer
-    This endpoint will create a Customer based on the data in the body that is posted
-    """
-    app.logger.info("Request to create a customer")
-    check_content_type("application/json")
+@ns.route("", strict_slashes=False)
+class CustomerCollection(Resource):
+    """Handles all interactions with collections of Customers"""
 
-    customer = Customer()
-    customer.deserialize(request.get_json())
-    if not customer.name or not customer.name.strip() or not customer.address or not customer.address.strip():
-        abort(status.HTTP_400_BAD_REQUEST, "Name and Address are required and cannot be empty")
-    customer.create()
-    message = customer.serialize()
-    location_url = request.base_url + "/" + str(customer.id)
+    def get(self):
+        """Returns all of the Customers"""
+        app.logger.info("Request for the customer list")
 
-    app.logger.info("Customer with ID: %d created.", customer.id)
-    return jsonify(message), status.HTTP_201_CREATED, {"Location": location_url}
+        name = request.args.get("name")
+        if name:
+            app.logger.info("Find by name: %s", name)
+            customers = Customer.find_by_name(name)
+        else:
+            app.logger.info("Find all")
+            customers = Customer.all()
 
+        results = [customer.serialize() for customer in customers]
+        app.logger.info("Returning %d customers", len(results))
+        return results, status.HTTP_200_OK
 
-######################################################################
-# READ A CUSTOMER
-######################################################################
-@app.route("/customers/<int:customer_id>", methods=["GET"])
-def get_customer(customer_id):
-    """
-    Retrieve a single Customer
+    def post(self):
+        """
+        Creates a Customer
+        This endpoint will create a Customer based on the data in the body that is posted
+        """
+        app.logger.info("Request to create a customer")
+        check_content_type("application/json")
 
-    This endpoint will return a Customer based on it's id
-    """
-    app.logger.info("Request to Retrieve a customer with id [%s]", customer_id)
+        customer = Customer()
+        customer.deserialize(request.get_json())
+        if (
+            not customer.name
+            or not customer.name.strip()
+            or not customer.address
+            or not customer.address.strip()
+        ):
+            abort(
+                status.HTTP_400_BAD_REQUEST,
+                "Name and Address are required and cannot be empty",
+            )
+        customer.create()
+        message = customer.serialize()
+        location_url = request.base_url.rstrip("/") + "/" + str(customer.id)
 
-    # Attempt to find the Pet and abort if not found
-    customer = Customer.find(customer_id)
-    if not customer:
-        abort(
-            status.HTTP_404_NOT_FOUND,
-            f"Customer with id '{customer_id}' was not found.",
-        )
-
-    app.logger.info("Returning Customer: %s", customer.name)
-    return jsonify(customer.serialize()), status.HTTP_200_OK
-
-
-######################################################################
-# UPDATE AN EXISTING CUSTOMER
-######################################################################
-@app.route("/customers/<int:customer_id>", methods=["PUT"])
-def update_customers(customer_id):
-    """
-    Update a Customer
-
-    This endpoint will update a Customer based the body that is posted
-    """
-    app.logger.info("Request to update customer with id: %s", customer_id)
-
-    customer = Customer.find(customer_id)
-    if not customer:
-        abort(
-            status.HTTP_404_NOT_FOUND,
-            f"Customer with id '{customer_id}' was not found.",
-        )
-
-    customer.deserialize(request.get_json())
-    customer.id = customer_id
-    customer.update()
-
-    return jsonify(customer.serialize()), status.HTTP_200_OK
+        app.logger.info("Customer with ID: %d created.", customer.id)
+        return message, status.HTTP_201_CREATED, {"Location": location_url}
 
 
 ######################################################################
-# LIST ALL CUSTOMERS
+# READ / UPDATE / DELETE A CUSTOMER
 ######################################################################
-@app.route("/customers", methods=["GET"])
-def list_customers():
-    """Returns all of the Customers"""
-    app.logger.info("Request for the customer list")
+@ns.route("/<int:customer_id>", strict_slashes=False)
+@ns.param("customer_id", "The Customer identifier")
+class CustomerResource(Resource):
+    """Handles all interactions with a single Customer"""
 
-    name = request.args.get("name")
-    if name:
-        app.logger.info("Find by name: %s", name)
-        customers = Customer.find_by_name(name)
-    else:
-        app.logger.info("Find all")
-        customers = Customer.all()
+    def get(self, customer_id):
+        """
+        Retrieve a single Customer
 
-    results = [customer.serialize() for customer in customers]
-    app.logger.info("Returning %d customers", len(results))
-    return jsonify(results), status.HTTP_200_OK
+        This endpoint will return a Customer based on it's id
+        """
+        app.logger.info("Request to Retrieve a customer with id [%s]", customer_id)
+
+        customer = Customer.find(customer_id)
+        if not customer:
+            abort(
+                status.HTTP_404_NOT_FOUND,
+                f"Customer with id '{customer_id}' was not found.",
+            )
+
+        app.logger.info("Returning Customer: %s", customer.name)
+        return customer.serialize(), status.HTTP_200_OK
+
+    def put(self, customer_id):
+        """
+        Update a Customer
+
+        This endpoint will update a Customer based the body that is posted
+        """
+        app.logger.info("Request to update customer with id: %s", customer_id)
+
+        customer = Customer.find(customer_id)
+        if not customer:
+            abort(
+                status.HTTP_404_NOT_FOUND,
+                f"Customer with id '{customer_id}' was not found.",
+            )
+
+        customer.deserialize(request.get_json())
+        customer.id = customer_id
+        customer.update()
+
+        return customer.serialize(), status.HTTP_200_OK
+
+    def delete(self, customer_id):
+        """
+        Delete a Customer
+
+        This endpoint will delete a Customer based the id specified in the path
+        """
+        app.logger.info("Request to delete customer with id: %s", customer_id)
+
+        customer = Customer.find(customer_id)
+        if customer:
+            customer.delete()
+
+        return "", status.HTTP_204_NO_CONTENT
 
 
 ######################################################################
 # SUSPEND A CUSTOMER
 ######################################################################
-@app.route("/customers/<int:customer_id>/suspend", methods=["PUT"])
-def suspend_customer(customer_id):
-    """
-    Suspend a Customer
+@ns.route("/<int:customer_id>/suspend", strict_slashes=False)
+@ns.param("customer_id", "The Customer identifier")
+class SuspendCustomer(Resource):
+    """Endpoint to suspend a Customer"""
 
-    This endpoint will suspend a Customer based on the id specified in the path
-    """
-    app.logger.info("Request to suspend customer with id: %s", customer_id)
+    def put(self, customer_id):
+        """
+        Suspend a Customer
 
-    customer = Customer.find(customer_id)
-    if not customer:
-        abort(
-            status.HTTP_404_NOT_FOUND,
-            f"Customer with id '{customer_id}' was not found.",
-        )
+        This endpoint will suspend a Customer based on the id specified in the path
+        """
+        app.logger.info("Request to suspend customer with id: %s", customer_id)
 
-    customer.status = "suspended"
-    customer.update()
+        customer = Customer.find(customer_id)
+        if not customer:
+            abort(
+                status.HTTP_404_NOT_FOUND,
+                f"Customer with id '{customer_id}' was not found.",
+            )
 
-    app.logger.info("Customer with ID: %d suspended.", customer.id)
-    return jsonify(customer.serialize()), status.HTTP_200_OK
+        customer.status = "suspended"
+        customer.update()
+
+        app.logger.info("Customer with ID: %d suspended.", customer.id)
+        return customer.serialize(), status.HTTP_200_OK
 
 
 ######################################################################
 # ACTIVATE A CUSTOMER
 ######################################################################
-@app.route("/customers/<int:customer_id>/activate", methods=["PUT"])
-def activate_customer(customer_id):
-    """
-    Activate a Customer
+@ns.route("/<int:customer_id>/activate", strict_slashes=False)
+@ns.param("customer_id", "The Customer identifier")
+class ActivateCustomer(Resource):
+    """Endpoint to activate a Customer"""
 
-    This endpoint will activate a Customer based on the id specified in the path
-    """
-    app.logger.info("Request to activate customer with id: %s", customer_id)
+    def put(self, customer_id):
+        """
+        Activate a Customer
 
-    customer = Customer.find(customer_id)
-    if not customer:
-        abort(
-            status.HTTP_404_NOT_FOUND,
-            f"Customer with id '{customer_id}' was not found.",
-        )
+        This endpoint will activate a Customer based on the id specified in the path
+        """
+        app.logger.info("Request to activate customer with id: %s", customer_id)
 
-    customer.status = "active"
-    customer.update()
+        customer = Customer.find(customer_id)
+        if not customer:
+            abort(
+                status.HTTP_404_NOT_FOUND,
+                f"Customer with id '{customer_id}' was not found.",
+            )
 
-    app.logger.info("Customer with ID: %d activated.", customer.id)
-    return jsonify(customer.serialize()), status.HTTP_200_OK
+        customer.status = "active"
+        customer.update()
+
+        app.logger.info("Customer with ID: %d activated.", customer.id)
+        return customer.serialize(), status.HTTP_200_OK
 
 
 ######################################################################
@@ -233,22 +231,3 @@ def check_content_type(content_type):
             status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
             f"Content-Type must be {content_type}",
         )
-
-
-######################################################################
-# DELETE A CUSTOMER
-######################################################################
-@app.route("/customers/<int:customer_id>", methods=["DELETE"])
-def delete_customers(customer_id):
-    """
-    Delete a Customer
-
-    This endpoint will delete a Customer based the id specified in the path
-    """
-    app.logger.info("Request to delete customer with id: %s", customer_id)
-
-    customer = Customer.find(customer_id)
-    if customer:
-        customer.delete()
-
-    return "", status.HTTP_204_NO_CONTENT

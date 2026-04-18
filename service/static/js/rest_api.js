@@ -55,7 +55,7 @@ $(function () {
 
         let ajax = $.ajax({
             type: "POST",
-            url: "/customers",
+            url: "/api/customers",
             contentType: "application/json",
             data: JSON.stringify(data),
         });
@@ -83,7 +83,7 @@ $(function () {
 
         let ajax = $.ajax({
             type: "GET",
-            url: `/customers/${customer_id}`,
+            url: `/api/customers/${customer_id}`,
             contentType: "application/json",
         });
 
@@ -111,7 +111,7 @@ $(function () {
     $("#list-btn").click(function () {
         let ajax = $.ajax({
             type: "GET",
-            url: "/customers",
+            url: "/api/customers",
             contentType: "application/json",
         });
 
@@ -167,7 +167,7 @@ $(function () {
 
         let ajax = $.ajax({
             type: "PUT",
-            url: `/customers/${customer_id}`,
+            url: `/api/customers/${customer_id}`,
             contentType: "application/json",
             data: JSON.stringify(data),
         });
@@ -195,7 +195,7 @@ $(function () {
 
         let ajax = $.ajax({
             type: "DELETE",
-            url: `/customers/${customer_id}`,
+            url: `/api/customers/${customer_id}`,
             contentType: "application/json",
         });
 
@@ -223,7 +223,7 @@ $(function () {
 
         let ajax = $.ajax({
             type: "GET",
-            url: `/customers?name=${name}`,
+            url: `/api/customers?name=${name}`,
             contentType: "application/json",
         });
 
@@ -265,7 +265,7 @@ $(function () {
 
         let ajax = $.ajax({
             type: "PUT",
-            url: `/customers/${customer_id}/suspend`,
+            url: `/api/customers/${customer_id}/suspend`,
             contentType: "application/json",
         });
 
@@ -292,7 +292,7 @@ $(function () {
 
         let ajax = $.ajax({
             type: "PUT",
-            url: `/customers/${customer_id}/activate`,
+            url: `/api/customers/${customer_id}/activate`,
             contentType: "application/json",
         });
 

@@ -30,7 +30,7 @@ from tests.factories import CustomerFactory
 DATABASE_URI = os.getenv(
     "DATABASE_URI", "postgresql+psycopg://postgres:postgres@localhost:5432/testdb"
 )
-BASE_URL = "/customers"
+BASE_URL = "/api/customers"
 
 
 ######################################################################
@@ -96,7 +96,7 @@ class TestYourResourceService(TestCase):
         test_customer = CustomerFactory()
         logging.debug("Test Customer: %s", test_customer.serialize())
         response = self.client.post(
-            "/customers",
+            BASE_URL,
             json=test_customer.serialize(),
             content_type="application/json",
         )
@@ -119,7 +119,7 @@ class TestYourResourceService(TestCase):
         del customer_data["name"]
         logging.debug("Test Customer without name: %s", customer_data)
         response = self.client.post(
-            "/customers", json=customer_data, content_type="application/json"
+            BASE_URL, json=customer_data, content_type="application/json"
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         data = response.get_json()
@@ -132,7 +132,7 @@ class TestYourResourceService(TestCase):
         del customer_data["address"]
         logging.debug("Test Customer without address: %s", customer_data)
         response = self.client.post(
-            "/customers", json=customer_data, content_type="application/json"
+            BASE_URL, json=customer_data, content_type="application/json"
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         data = response.get_json()
@@ -145,7 +145,7 @@ class TestYourResourceService(TestCase):
         customer_data["name"] = ""
         logging.debug("Test Customer with empty name: %s", customer_data)
         response = self.client.post(
-            "/customers", json=customer_data, content_type="application/json"
+            BASE_URL, json=customer_data, content_type="application/json"
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         data = response.get_json()
@@ -158,7 +158,7 @@ class TestYourResourceService(TestCase):
         customer_data["address"] = ""
         logging.debug("Test Customer with empty address: %s", customer_data)
         response = self.client.post(
-            "/customers", json=customer_data, content_type="application/json"
+            BASE_URL, json=customer_data, content_type="application/json"
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         data = response.get_json()
@@ -167,14 +167,14 @@ class TestYourResourceService(TestCase):
     def test_create_customer_no_content_type(self):
         """It should not Create a Customer with no Content-Type"""
         test_customer = CustomerFactory()
-        response = self.client.post("/customers", data=test_customer.serialize())
+        response = self.client.post(BASE_URL, data=test_customer.serialize())
         self.assertEqual(response.status_code, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
 
     def test_create_customer_wrong_content_type(self):
         """It should not Create a Customer with wrong Content-Type"""
         test_customer = CustomerFactory()
         response = self.client.post(
-            "/customers", json=test_customer.serialize(), content_type="text/plain"
+            BASE_URL, json=test_customer.serialize(), content_type="text/plain"
         )
         self.assertEqual(response.status_code, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
 
