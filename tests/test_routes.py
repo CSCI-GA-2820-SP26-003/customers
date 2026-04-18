@@ -358,3 +358,23 @@ class TestYourResourceService(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.get_json()
         self.assertEqual(data["status"], "active")
+
+    def test_suspend_already_suspended_customer(self):
+        """It should remain suspended when suspending an already suspended Customer"""
+        test_customer = CustomerFactory(status="suspended")
+        test_customer.create()
+
+        response = self.client.put(f"{BASE_URL}/{test_customer.id}/suspend")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        self.assertEqual(data["status"], "suspended")
+
+    def test_activate_already_active_customer(self):
+        """It should remain active when activating an already active Customer"""
+        test_customer = CustomerFactory(status="active")
+        test_customer.create()
+
+        response = self.client.put(f"{BASE_URL}/{test_customer.id}/activate")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        self.assertEqual(data["status"], "active")

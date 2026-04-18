@@ -43,7 +43,7 @@ $(function () {
         let status = $("#customer_status").val();
 
         if (!name || name.trim() === "" || !address || address.trim() === "") {
-            flash_message("Error: Name and Address are required");
+            flash_message("error: Name and Address are required");
             return;
         }
 
@@ -155,7 +155,7 @@ $(function () {
         let status = $("#customer_status").val();
 
         if (!name || name.trim() === "" || !address || address.trim() === "") {
-            flash_message("Error: Name and Address are required");
+            flash_message("error: Name and Address are required");
             return;
         }
 

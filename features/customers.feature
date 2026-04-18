@@ -92,3 +92,49 @@ Scenario: Activate a Customer
     When I press the "Activate" button
     Then I should see "Success" in the flash message
     And I should see "active" in the "customer_status" field
+
+Scenario: Create a Customer with Missing Name
+    When I visit the "Home Page"
+    And I set the "customer_address" field to "999 Test Avenue"
+    And I press the "Create" button
+    Then I should see "error" in the flash message
+
+Scenario: Create a Customer with Missing Address
+    When I visit the "Home Page"
+    And I set the "customer_name" field to "Test Customer"
+    And I press the "Create" button
+    Then I should see "error" in the flash message
+
+Scenario: Create a Customer with All Fields Empty
+    When I visit the "Home Page"
+    And I press the "Create" button
+    Then I should see "error" in the flash message
+
+Scenario: Query a Customer by Name That Does Not Exist
+    When I visit the "Home Page"
+    And I set the "search_name" field to "Nonexistent Person"
+    And I press the "Query by Name" button
+    Then I should see "Success" in the flash message
+    And I should not see "Nonexistent Person" in the results
+
+Scenario: Suspend a Customer That Is Already Suspended
+    When I visit the "Home Page"
+    And I set the "search_id" field to the id of "Bob Smith"
+    And I press the "Retrieve by ID" button
+    Then I should see "Success" in the flash message
+    When I press the "Suspend" button
+    Then I should see "suspended" in the "customer_status" field
+
+Scenario: Activate a Customer That Is Already Active
+    When I visit the "Home Page"
+    And I set the "search_id" field to the id of "John Adams"
+    And I press the "Retrieve by ID" button
+    Then I should see "Success" in the flash message
+    When I press the "Activate" button
+    Then I should see "active" in the "customer_status" field
+
+Scenario: Delete a Customer That Does Not Exist
+    When I visit the "Home Page"
+    And I set the "search_id" field to "0"
+    And I press the "Retrieve by ID" button
+    Then I should see "not found" in the flash message
