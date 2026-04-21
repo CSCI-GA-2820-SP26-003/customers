@@ -23,7 +23,7 @@ and Delete Customer
 
 from flask import request, abort
 from flask import current_app as app  # Import Flask application
-from flask_restx import Namespace, Resource
+from flask_restx import Namespace, Resource, fields
 from service.models import Customer
 from service.common import status  # HTTP Status Codes
 
@@ -32,6 +32,33 @@ from service.common import status  # HTTP Status Codes
 ######################################################################
 ns = Namespace("customers", description="Customer operations")
 
+######################################################################
+# API Models for Swagger documentation
+######################################################################
+create_model = ns.model(
+    "CustomerCreate",
+    {
+        "name": fields.String(required=True, description="Customer name"),
+        "address": fields.String(required=True, description="Customer address"),
+        "status": fields.String(
+            description="Customer status (active or suspended)", example="active"
+        ),
+    },
+)
+
+customer_model = ns.model(
+    "Customer",
+    {
+        "id": fields.Integer(
+            readonly=True, description="The customer unique identifier"
+        ),
+        "name": fields.String(required=True, description="Customer name"),
+        "address": fields.String(required=True, description="Customer address"),
+        "status": fields.String(
+            description="Customer status (active or suspended)", example="active"
+        ),
+    },
+)
 
 ######################################################################
 #  R E S T   A P I   E N D P O I N T S
@@ -45,6 +72,9 @@ ns = Namespace("customers", description="Customer operations")
 class CustomerCollection(Resource):
     """Handles all interactions with collections of Customers"""
 
+    @ns.doc("list_customers")
+    @ns.param("name", "Filter customers by name")
+    @ns.marshal_list_with(customer_model)
     def get(self):
         """Returns all of the Customers"""
         app.logger.info("Request for the customer list")
@@ -61,6 +91,11 @@ class CustomerCollection(Resource):
         app.logger.info("Returning %d customers", len(results))
         return results, status.HTTP_200_OK
 
+    @ns.doc("create_customer")
+    @ns.expect(create_model)
+    @ns.response(201, "Customer created successfully")
+    @ns.response(400, "Validation error")
+    @ns.response(415, "Unsupported media type")
     def post(self):
         """
         Creates a Customer
@@ -97,6 +132,9 @@ class CustomerCollection(Resource):
 class CustomerResource(Resource):
     """Handles all interactions with a single Customer"""
 
+    @ns.doc("get_customer")
+    @ns.marshal_with(customer_model)
+    @ns.response(404, "Customer not found")
     def get(self, customer_id):
         """
         Retrieve a single Customer
@@ -115,6 +153,10 @@ class CustomerResource(Resource):
         app.logger.info("Returning Customer: %s", customer.name)
         return customer.serialize(), status.HTTP_200_OK
 
+    @ns.doc("update_customer")
+    @ns.expect(create_model, validate=True)
+    @ns.marshal_with(customer_model)
+    @ns.response(404, "Customer not found")
     def put(self, customer_id):
         """
         Update a Customer
@@ -136,6 +178,9 @@ class CustomerResource(Resource):
 
         return customer.serialize(), status.HTTP_200_OK
 
+    @ns.doc("delete_customer")
+    @ns.response(204, "Customer deleted")
+    @ns.response(404, "Customer not found")
     def delete(self, customer_id):
         """
         Delete a Customer
@@ -159,6 +204,9 @@ class CustomerResource(Resource):
 class SuspendCustomer(Resource):
     """Endpoint to suspend a Customer"""
 
+    @ns.doc("suspend_customer")
+    @ns.marshal_with(customer_model)
+    @ns.response(404, "Customer not found")
     def put(self, customer_id):
         """
         Suspend a Customer
@@ -189,6 +237,9 @@ class SuspendCustomer(Resource):
 class ActivateCustomer(Resource):
     """Endpoint to activate a Customer"""
 
+    @ns.doc("activate_customer")
+    @ns.marshal_with(customer_model)
+    @ns.response(404, "Customer not found")
     def put(self, customer_id):
         """
         Activate a Customer
