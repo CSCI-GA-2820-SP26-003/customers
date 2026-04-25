@@ -319,6 +319,15 @@ class TestYourResourceService(TestCase):
         # PATCH is not defined on /customers
         response = self.client.patch(BASE_URL, json={})
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+        self.assertIn("application/json", response.content_type)
+
+    def test_incorrect_endpoint_returns_json_error(self):
+        """It should return a JSON error for an incorrect endpoint"""
+        response = self.client.get("/incorrect-endpoint")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertIn("application/json", response.content_type)
+        data = response.get_json()
+        self.assertIn("message", data)
 
     def test_query_customers_by_name(self):
         """It should return only customers matching the queried name"""
