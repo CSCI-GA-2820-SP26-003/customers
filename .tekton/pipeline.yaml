@@ -57,5 +57,21 @@ spec:
       workspaces:
         - name: output
           workspace: pipeline-workspace
+    - name: lint
+      runAfter:
+        - git-clone
+      taskRef:
+        name: lint
+      workspaces:
+        - name: source
+          workspace: pipeline-workspace
+    - name: tests
+      runAfter:
+        - git-clone
+      taskRef:
+        name: unit-test
+      workspaces:
+        - name: source
+          workspace: pipeline-workspace
   workspaces:
     - name: pipeline-workspace
