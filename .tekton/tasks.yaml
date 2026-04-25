@@ -68,3 +68,30 @@ spec:
         sys.exit(1)
         EOF
         pytest --pspec --cov=service --cov-fail-under=95 --disable-warnings
+---
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: bdd-test
+spec:
+  params:
+    - name: BASE_URL
+      description: The external OpenShift route URL for the deployed microservice
+      type: string
+  workspaces:
+    - name: source
+  steps:
+    - name: run-bdd-tests
+      image: python:3.12-slim
+      workingDir: $(workspaces.source.path)
+      env:
+        - name: BASE_URL
+          value: $(params.BASE_URL)
+      script: |
+        #!/bin/bash
+        set -euo pipefail
+        apt-get update && apt-get install -y --no-install-recommends \
+          chromium chromium-driver
+        pip install -U pip pipenv
+        pipenv install --system --dev
+        behave
