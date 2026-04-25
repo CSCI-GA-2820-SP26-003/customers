@@ -66,12 +66,15 @@ def create_app():
         return render_template("index.html")
 
     # Initialize Flask-RESTX API with /api prefix
+    # doc='/apidocs' registers Swagger UI at /apidocs/ (absolute path, not prefixed)
+    # without this it conflicts with the custom '/' index route above
     api = Api(
         app,
         version="1.0",
         title="Customer REST API Service",
         description="A REST API service for managing Customers",
         prefix="/api",
+        doc="/apidocs/",
     )
 
     with app.app_context():

@@ -91,6 +91,65 @@ class TestYourResourceService(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn("Customer Administration", response.get_data(as_text=True))
 
+    ######################################################################
+    #  S W A G G E R   /   A P I   D O C S   T E S T S
+    ######################################################################
+
+    def test_apidocs_available(self):
+        """It should serve the Swagger UI at /apidocs/"""
+        response = self.client.get("/apidocs/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("text/html", response.content_type)
+        self.assertIn("swagger", response.get_data(as_text=True).lower())
+
+    def test_swagger_json_spec(self):
+        """It should serve a valid Swagger JSON spec at /api/swagger.json"""
+        response = self.client.get("/api/swagger.json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("application/json", response.content_type)
+        spec = response.get_json()
+        self.assertIn("swagger", spec)
+        self.assertIn("paths", spec)
+        self.assertIn("definitions", spec)
+
+    def test_swagger_spec_contains_all_endpoints(self):
+        """It should document all 6 endpoint paths in the Swagger spec"""
+        response = self.client.get("/api/swagger.json")
+        spec = response.get_json()
+        paths = spec["paths"]
+        self.assertIn("/customers", paths)
+        self.assertIn("/customers/{customer_id}", paths)
+        self.assertIn("/customers/{customer_id}/suspend", paths)
+        self.assertIn("/customers/{customer_id}/activate", paths)
+
+    def test_swagger_spec_contains_models(self):
+        """It should define Customer and CustomerCreate data models in the spec"""
+        response = self.client.get("/api/swagger.json")
+        spec = response.get_json()
+        definitions = spec.get("definitions", {})
+        self.assertIn("Customer", definitions)
+        self.assertIn("CustomerCreate", definitions)
+
+    def test_swagger_customer_model_required_fields(self):
+        """Customer model should mark name and address as required"""
+        response = self.client.get("/api/swagger.json")
+        spec = response.get_json()
+        create_def = spec["definitions"]["CustomerCreate"]
+        required = create_def.get("required", [])
+        self.assertIn("name", required)
+        self.assertIn("address", required)
+
+    def test_swagger_spec_field_types(self):
+        """Customer model should define correct field types"""
+        response = self.client.get("/api/swagger.json")
+        spec = response.get_json()
+        customer_def = spec["definitions"]["Customer"]
+        props = customer_def.get("properties", {})
+        self.assertEqual(props["id"]["type"], "integer")
+        self.assertEqual(props["name"]["type"], "string")
+        self.assertEqual(props["address"]["type"], "string")
+        self.assertEqual(props["status"]["type"], "string")
+
     def test_create_customer(self):
         """It should Create a new Customer"""
         test_customer = CustomerFactory()
