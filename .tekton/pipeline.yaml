@@ -1,6 +1,6 @@
 apiVersion: tekton.dev/v1
 kind: Pipeline
-metadata:
+metadata: 
   name: cd-pipeline
 spec:
   params:
@@ -12,9 +12,16 @@ spec:
       description: The reference (branch or ref)
       name: GIT_REF
       type: string
-    - default: ''
-      description: The external OpenShift route URL for the deployed microservice
+    - description: The external OpenShift route URL for the deployed microservice
       name: BASE_URL
+      type: string
+    - default: customers
+      description: Name of app
+      name: APP_NAME
+      type: string
+    - default: 'image-registry.openshift-image-registry.svc:5000/$(context.pipelineRun.namespace)/$(params.APP_NAME):latest'
+      description: Name of the image
+      name: IMAGE_NAME
       type: string
   tasks:
     - name: git-clone
@@ -65,6 +72,7 @@ spec:
       runAfter:
         - git-clone
       taskRef:
+        kind: Task
         name: lint
       workspaces:
         - name: source
@@ -73,19 +81,60 @@ spec:
       runAfter:
         - git-clone
       taskRef:
+        kind: Task
         name: unit-test
       workspaces:
         - name: source
           workspace: pipeline-workspace
     - name: bdd-tests
-      runAfter:
-        - tests
-        - lint
       params:
         - name: BASE_URL
           value: $(params.BASE_URL)
+      runAfter:
+        - buildah
       taskRef:
+        kind: Task
         name: bdd-test
+      workspaces:
+        - name: source
+          workspace: pipeline-workspace
+    - name: buildah
+      params:
+        - name: IMAGE
+          value: $(params.IMAGE_NAME)
+        - name: DOCKERFILE
+          value: ./Dockerfile
+        - name: BUILD_ARGS
+          value:
+            - ''
+        - name: CONTEXT
+          value: .
+        - name: STORAGE_DRIVER
+          value: vfs
+        - name: FORMAT
+          value: oci
+        - name: BUILD_EXTRA_ARGS
+          value: ''
+        - name: PUSH_EXTRA_ARGS
+          value: ''
+        - name: SKIP_PUSH
+          value: 'false'
+        - name: TLS_VERIFY
+          value: 'true'
+        - name: VERBOSE
+          value: 'false'
+      runAfter:
+        - tests
+        - lint
+      taskRef:
+        params:
+          - name: kind
+            value: task
+          - name: name
+            value: buildah
+          - name: namespace
+            value: openshift-pipelines
+        resolver: cluster
       workspaces:
         - name: source
           workspace: pipeline-workspace
