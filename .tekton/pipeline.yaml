@@ -12,6 +12,10 @@ spec:
       description: The reference (branch or ref)
       name: GIT_REF
       type: string
+    - default: ''
+      description: The external OpenShift route URL for the deployed microservice
+      name: BASE_URL
+      type: string
   tasks:
     - name: git-clone
       params:
@@ -70,6 +74,18 @@ spec:
         - git-clone
       taskRef:
         name: unit-test
+      workspaces:
+        - name: source
+          workspace: pipeline-workspace
+    - name: bdd-tests
+      runAfter:
+        - tests
+        - lint
+      params:
+        - name: BASE_URL
+          value: $(params.BASE_URL)
+      taskRef:
+        name: bdd-test
       workspaces:
         - name: source
           workspace: pipeline-workspace
