@@ -75,6 +75,7 @@ def create_app():
         description="A REST API service for managing Customers",
         prefix="/api",
         doc="/apidocs/",
+        catch_all_404s=True,
     )
 
     with app.app_context():
