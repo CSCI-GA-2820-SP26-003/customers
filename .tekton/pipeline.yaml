@@ -1,6 +1,6 @@
 apiVersion: tekton.dev/v1
 kind: Pipeline
-metadata: 
+metadata:
   name: cd-pipeline
 spec:
   params:
@@ -91,7 +91,7 @@ spec:
         - name: BASE_URL
           value: $(params.BASE_URL)
       runAfter:
-        - deploy
+        - deploy-image
       taskRef:
         kind: Task
         name: bdd-test
@@ -138,28 +138,19 @@ spec:
       workspaces:
         - name: source
           workspace: pipeline-workspace
-    - name: deploy
+    - name: deploy-image
+      params:
+        - name: image-name
+          value: $(params.IMAGE_NAME)
+        - name: manifest-dir
+          value: k8s
       runAfter:
         - buildah
       taskRef:
-        resolver: cluster
-        params:
-          - name: kind
-            value: task
-          - name: name
-            value: openshift-client
-          - name: namespace
-            value: openshift-pipelines
-      params:
-        - name: SCRIPT
-          value: |
-            oc apply -f k8s/deployment.yaml
-            oc apply -f k8s/service.yaml
-            oc apply -f k8s/ingress.yaml
-            oc set image deployment/customers customers=$(params.IMAGE_NAME)
-            oc rollout status deployment/customers --timeout=300s
+        kind: Task
+        name: deploy-image
       workspaces:
-        - name: manifest-dir
+        - name: source
           workspace: pipeline-workspace
   workspaces:
     - name: pipeline-workspace
