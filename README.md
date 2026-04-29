@@ -7,7 +7,7 @@
 
 ## Overview
 
-The Customers service is a RESTful API that maintains a list of customers and their details for an e-commerce application. This is a part of the Project for the Spring 2026 NYU DevOps Course
+The Customers service is a RESTful API that maintains a list of customers and their details for an e-commerce application. This is a part of the Project for the Spring 2026 NYU DevOps Course.
 
 ## Setup
 
